@@ -170,7 +170,7 @@ body {
   .sidebar {
     width: 100%;
     height: auto;
-    max-height: 45vh;
+    max-height: 25vh;
     position: fixed;
     bottom: 0;
     left: 0;
@@ -179,8 +179,8 @@ body {
     border-top: 1px solid var(--border-color);
     border-radius: 20px 20px 0 0;
     box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
-    padding: 1.25rem;
-    padding-bottom: 25px;
+    padding: 1rem;
+    padding-bottom: 20px;
     background: var(--panel-bg);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -189,13 +189,16 @@ body {
   .map-container {
     height: 100%;
     width: 100%;
+    overflow: hidden; /* Prevents scaled 3D map from causing page scrolling */
+    position: relative;
+    background: #e2e8f0; /* Fallback background */
   }
   .floating-actions {
-    bottom: calc(45vh + 1rem) !important;
+    bottom: calc(25vh + 0.5rem) !important;
     right: 1rem !important;
   }
   .hud-panel {
-    bottom: calc(45vh + 1rem) !important;
+    bottom: calc(25vh + 0.5rem) !important;
     width: 95% !important;
     left: 50% !important;
     transform: translateX(-50%) !important;

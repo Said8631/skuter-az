@@ -53,6 +53,8 @@ export default function HomePage() {
   const [showSplash, setShowSplash] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isHudExpanded, setIsHudExpanded] = useState(true);
+  const [is3DMode, setIs3DMode] = useState(true);
+  const [shouldPanToUser, setShouldPanToUser] = useState(null);
 
   // ==== Theme Management ==== //
   const toggleTheme = () => setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
@@ -77,6 +79,7 @@ export default function HomePage() {
     if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
     navigator.geolocation.getCurrentPosition(pos => {
       setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      setShouldPanToUser(Date.now());
     }, err => { alert('Unable to retrieve location'); });
   };
 
@@ -405,6 +408,8 @@ export default function HomePage() {
             heatmapData={heatmapData}
             searchResultLocation={searchResult}
             panToLocation={searchResult}
+            is3DMode={is3DMode}
+            shouldPanToUser={shouldPanToUser}
           />
           {/* Floating Action Buttons */}
           <div className="floating-actions" style={{ position: 'absolute', bottom: '2rem', right: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', zIndex: 1000 }}>
@@ -474,16 +479,19 @@ export default function HomePage() {
       <AnimatePresence>
         {activeRide && (
           <motion.div className="hud-panel" initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} style={{ position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)', background: 'var(--background)', padding: '1.5rem', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', zIndex: 2000, width: '90%', maxWidth: '350px', border: '2px solid var(--accent)' }}>
-             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isHudExpanded ? '1rem' : '0', cursor: 'pointer' }} onClick={() => setIsHudExpanded(!isHudExpanded)}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isHudExpanded ? '1rem' : '0' }}>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer' }} onClick={() => setIsHudExpanded(!isHudExpanded)}>
                  <div style={{ animation: 'pulse 1.5s infinite', width: '12px', height: '12px', background: '#ef4444', borderRadius: '50%' }}></div>
                  <span style={{ fontWeight: 'bold' }}>Aktiv Naviqasiya</span>
                </div>
                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                 <button className="btn" style={{ padding: '4px 8px', fontSize: '0.75rem', height: 'auto', background: 'var(--card-bg)', color: 'var(--foreground)', border: '1px solid var(--border-color)', borderRadius: '6px' }} onClick={(e) => { e.stopPropagation(); setIs3DMode(!is3DMode); }}>
+                    {is3DMode ? '3D' : '2D'}
+                 </button>
                  <div style={{ fontSize: '1.8rem', fontWeight: '900', fontFamily: 'monospace' }}>
                    {String(Math.floor(rideTimer / 60)).padStart(2, '0')}:{String(rideTimer % 60).padStart(2, '0')}
                  </div>
-                 {isHudExpanded ? <ChevronDown size={20} opacity={0.5} /> : <ChevronUp size={20} opacity={0.5} />}
+                 {isHudExpanded ? <ChevronDown size={20} opacity={0.5} style={{cursor: 'pointer'}} onClick={() => setIsHudExpanded(false)} /> : <ChevronUp size={20} opacity={0.5} style={{cursor: 'pointer'}} onClick={() => setIsHudExpanded(true)}/>}
                </div>
              </div>
 

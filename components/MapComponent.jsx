@@ -115,6 +115,64 @@ function PanToBounds({ path }) {
   return null;
 }
 
+// Manual user location panning trigger
+function PanToUser({ userLocation, shouldPanToUser }) {
+  const map = useMap();
+  useEffect(() => {
+    if (shouldPanToUser && userLocation) {
+      map.flyTo([userLocation.lat, userLocation.lng], 16, { duration: 1.2 });
+    }
+  }, [shouldPanToUser, userLocation, map]);
+  return null;
+}
+
+// 3D/2D Navigation Tracking Camera
+function NavigationCameraTracker({ activeRide, userLocation, is3DMode }) {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    if (activeRide && userLocation) {
+      if (is3DMode) {
+        // 3D tilt
+        map.flyTo([userLocation.lat, userLocation.lng], 18, {
+          animate: true,
+          duration: 1.5,
+          easeLinearity: 0.25
+        });
+        container.parentElement.style.perspective = '1200px';
+        container.parentElement.style.overflow = 'hidden';
+        container.style.transition = 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        container.style.transformOrigin = 'center bottom';
+        // Increase scale drastically to prevent edge clipping when tilted
+        container.style.transform = 'rotateX(65deg) scale(2.5) translateY(-20%)';
+        container.style.height = '150%';
+      } else {
+        // 2D straight down
+        map.flyTo([userLocation.lat, userLocation.lng], 17, {
+          animate: true,
+          duration: 1.5,
+        });
+        container.style.transition = 'transform 0.8s ease';
+        container.style.transform = 'none';
+        container.style.height = '100%';
+        if(container.parentElement) {
+           container.parentElement.style.perspective = 'none';
+        }
+      }
+    } else {
+      // Reset if ride stops
+      container.style.transition = 'transform 0.8s ease';
+      container.style.transform = 'none';
+      container.style.height = '100%';
+      if(container.parentElement) {
+         container.parentElement.style.perspective = 'none';
+      }
+    }
+  }, [activeRide, userLocation, is3DMode, map]);
+  
+  return null;
+}
+
 export default function MapComponent({
   scooters,
   userLocation,
@@ -129,6 +187,8 @@ export default function MapComponent({
   heatmapData = [],
   searchResultLocation = null,
   panToLocation = null,
+  is3DMode = true,
+  shouldPanToUser = null,
 }) {
   const tileUrl = theme === 'dark'
     ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -144,11 +204,17 @@ export default function MapComponent({
     >
       <TileLayer url={tileUrl} attribution='&copy; CARTO' />
 
-      {/* Pan to searched location */}
-      {panToLocation && <PanToLocation location={panToLocation} />}
+      {/* Manual Locate Me */}
+      <PanToUser userLocation={userLocation} shouldPanToUser={shouldPanToUser} />
 
-      {/* Pan to route bounds */}
-      {selectedRoute?.path && <PanToBounds path={selectedRoute.path} />}
+      {/* Pan to searched location */}
+      {panToLocation && !activeRide && <PanToLocation location={panToLocation} />}
+
+      {/* Pan to route bounds (only when viewing, not riding) */}
+      {selectedRoute?.path && !activeRide && <PanToBounds path={selectedRoute.path} />}
+
+      {/* 3D Navigation Tracker */}
+      {activeRide && <NavigationCameraTracker activeRide={activeRide} userLocation={userLocation} is3DMode={is3DMode} />}
 
       {/* === ZONES === */}
       {visibleLayers.includes('zones') && mockZones.map(zone => (
